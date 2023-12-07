@@ -1,9 +1,5 @@
 from collections import UserDict
-from datetime import datetime, timedelta
-from collections import defaultdict
-
-from birthdays import get_birthdays_per_week 
-
+from datetime import datetime
 class Field:
     def __init__(self,val):
         self.value = val
@@ -18,39 +14,46 @@ class Phone(Field):
     def __init__(self, val) -> None:
         super().__init__(val)
         if not self.is_valid_phone():
-            raise ValueError("Invalid phone number")
+            raise ValueError("Invalid phone number. At least 10 characters")
     def is_valid_phone(self):
         return len(str(self.value)) == 10
   
 class Birthday(Field):
     def __init__(self, val):
+        
+        if not self.is_valid_date_format(val):
+            raise ValueError('Enter your birthday date in such format: 13 September 1989')
+        
+        new_v= datetime.strptime(val, '%d %B %Y')
+        formatted_date = new_v.strftime('%d.%m.%Y')
+       
+        super().__init__(formatted_date) 
+         
+    def is_valid_date_format(self, val):
+        
         try:
-            new_v= datetime.strptime(val, '%d %B %Y')
-            formatted_date = new_v.strftime('%d.%m.%Y')
-            super().__init__(formatted_date)  
+            datetime.strptime(val, '%d %B %Y')
+            return True
         except ValueError:
-            print('Please enter your birthday date in such format: 13 September 1989')
+            return False 
+        
     def to_datetime(self):
         return datetime.strptime(str(self), '%d.%m.%Y')
         
-
 class Record:
     def __init__(self,name) -> None:
         self.name = Name(name)
-        self.phones =[]
+        self.phone =''
         self.birthday =''
         
     def add_phone(self,phone):
-        self.phones.append(Phone(phone))
+        self.phone = (Phone(phone))
         
     def remove_phone(self,phone):
-        self.phones = [p for p in self.phones if p.value != phone]
+        self.phone = ''
         
-    def edit_phone(self,phone, new_phone):
-        for i in self.phones:
-            if(i.value == phone):
-                i.value = new_phone
-                break
+    def edit_phone(self, new_phone):
+        self.phone = Phone(new_phone)
         
     def find_phone(self,phone):
         return next((p for p in self.phones if p.value == phone), None)
@@ -62,7 +65,7 @@ class Record:
         return self.birthday.value
     
     def __str__(self) -> str:
-        return f"Contact name: {self.name.value}, phones: {';'.join(p.value for p in self.phones)}, "
+        return f"Contact name: {self.name.value}, phone: {self.phone}, birthday: {self.birthday} "
     
 class AddressBook(UserDict):
     def add_record(self,user):
@@ -98,29 +101,4 @@ class AddressBook(UserDict):
             output += f'{day}: {", ".join(names)}\n'
 
         return output
-        
-    
-book = AddressBook()
-kari_record = Record('Kari')
-kari_record.add_phone('1309198934')
-kari_record.add_phone('0909202003')
-kari_record.add_birthday('11 December 1989')
-kari_record.edit_phone('0909202003', '1313131313')
-
-book.add_record(kari_record)
-
-platon_record = Record('Platon')
-platon_record.add_phone('7894561230')
-platon_record.add_phone('0123654789')
-platon_record.add_birthday('13 December 1989')
-
-book.add_record(platon_record)
-
-kari = book.find('Kari')
-search =kari_record.find_phone('0909202003')
-
-
-for name,record in book.data.items():
-    print(name, 'fghf')
-    
-
+       
